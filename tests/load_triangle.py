@@ -10,4 +10,4 @@ if __name__ == '__main__':
     origin = np.array([0, 0, 1, 2])
     dev = np.array([0, 2, 1, 0])
     tri = AbstractTriangle(values, origin, dev, ori_size=3, dev_size=3)
-    print(tri._oneptri)
+    print(tri)

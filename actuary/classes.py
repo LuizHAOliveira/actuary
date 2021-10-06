@@ -20,11 +20,31 @@ class AbstractOnePeriodTriangle:
             if o > ori_size or o + d + 1 > dev_size:
                 continue
             self._oneptri[o, d] += v
+    def __repr__(self):
+        return str(self._oneptri)
 
 class AbstractTriangle(AbstractOnePeriodTriangle):
-    def __init__(self, val=np.zeros(0), ori=np.zeros(0), dev=np.zeros(0), tri_val=np.zeros(0), **kwargs):
+    @property
+    def values(self):
+        return self._internaltri
+        
+    def __init__(self, val=np.zeros(0), ori=np.zeros(0), dev=np.zeros(0), tri_val=np.zeros(0),
+        origin_per=1, dev_per=1, **kwargs):
         super().__init__(val, ori, dev, tri_val, **kwargs)
-        self.construct_triangle()
-    
-    def construct_triangle(self):
-        pass
+        self._construct_triangle(origin_per, dev_per)
+    def _construct_triangle(self, origin_per, dev_per):
+        one_size = self._oneptri.shape
+        origin_size = one_size[0] //  origin_per + min(one_size[0] % origin_per, 1)
+        dev_size = one_size[1] //  dev_per + min(one_size[1] % dev_per, 1)
+        left_overs = one_size[1] % dev_per
+        self._internaltri = np.zeros((origin_size, dev_size))
+        for i in range(one_size[0]):
+            for j in range(one_size[1] - i):
+                i_new = i // origin_per
+                rel_months = i % origin_per + j
+                j_new = (rel_months - left_overs) // dev_per + 1
+                self._internaltri[i_new, j_new] += self._oneptri[i, j]
+
+    def _maxcol_index(self, row):
+
+        return
