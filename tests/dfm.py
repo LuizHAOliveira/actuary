@@ -19,3 +19,5 @@ if __name__ == '__main__':
     
     print(dfm.selection_tri)
     print(dfm.periods())
+    factors = dfm.calculate_dfm()
+    print(factors.get_cdf(0))
