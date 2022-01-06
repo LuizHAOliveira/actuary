@@ -6,7 +6,7 @@ Created on Thu Oct 14 15:51:23 2021
 """
 
 import __init__
-from actuary.classes import Triangle, DFMUltimate
+from actuary.triangle import Triangle, DFMUltimate
 from tests.random_triangle import generate_onepertriangle
 import numpy as np
 

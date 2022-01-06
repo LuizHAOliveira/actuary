@@ -1,5 +1,5 @@
 import __init__
-from actuary.classes import HorizontalHeader, VerticalHeader
+from actuary.triangle import HorizontalHeader, VerticalHeader
 
 if __name__ == '__main__':
     h = HorizontalHeader(12, 30)
