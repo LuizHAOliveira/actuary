@@ -1,9 +1,11 @@
-from actuary.errors import ArrayDifferentSizesError, InvalidPeriodCombinationError
+from errors import ArrayDifferentSizesError, InvalidPeriodCombinationError
 
 import numpy as np
 import xlwings as xw
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+import json
+from pathlib import Path
 
 _DEFAULT_DATE = date(2000, 1, 1)
 
@@ -73,13 +75,14 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     def maxcol_index(self, row) -> int:
         dev_ori_ratio = int(self.periods[0] / self.periods[1])
         index = self.shape[1] - row * dev_ori_ratio - 1
-        return index + 1
+        return index
 
     def __init__(self, values: list,
             months_span: list,
             periods: list,
             cumulative: bool,
-            ref_date: date = date(2000, 1, 1)) -> None:
+            ref_date: date = date(2000, 1, 1),
+            **kwargs) -> None:
         self.values = np.array(values)
         self.periods = periods
         self.months_span = months_span
@@ -87,7 +90,7 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         self.h_header = HorizontalHeader(periods[1], months_span[1], ref_date)
         self.ref_date = ref_date
         self.cumulative = cumulative
-    def get_diagonal(self, index: int=0):
+    def get_diagonal(self, index: int=0) -> np.array:
         tri = self.values
         diag = np.zeros(self.shape[0])
         for i in range(diag.size):
@@ -101,7 +104,7 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     def _change_to_cumulative(self) -> None:
         new_tri = np.zeros(self.values.shape)
         for i in range(self.values.shape[0]):
-            for j in range(self.maxcol_index(i)):
+            for j in range(self.maxcol_index(i) + 1):
                 new_tri[i, j] = new_tri[i, j-1] + self.values[i, j]
         self.values = new_tri
         self.cumulative = True
@@ -113,12 +116,22 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         self.cumulative = False
 
     def save_json(self, name: str, path: str='.') -> None:
-        pass
+        json_info = self.to_json()
+        folder = Path(path)
+        with open(folder / name, 'w+') as f:
+            json.dump(json_info, f)
     @classmethod
-    def load_json():
-        pass
-    def from_json(self, json_info: dict) -> None:
-        self.__init__(**json_info)
+    def load_json(cls, name: str, path: str='.'):
+        folder = Path(path)
+        with open(folder / name, 'r') as f:
+            json_info = json.load(f)
+        json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
+        return cls(**json_info)
+    @classmethod
+    def from_json(cls, json_info: dict):
+        if not isinstance(json_info['ref_date'], date):
+            json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
+        return cls(**json_info)
     def to_json(self) -> dict:
         return {'ref_date': self.ref_date.strftime('%Y-%m'),
             'periods': list(self.periods),
@@ -159,7 +172,7 @@ class TriangleFactory:
 
     def __init__(self, base_triangle: np.array, ref_date: date = _DEFAULT_DATE):
         """ The 'true' constructor is the basic movement triangle. """
-        self.base_triangle = base_triangle
+        self.base_triangle = np.array(base_triangle)
         self.ref_date = ref_date
     def _check_valid_periods(self, origin_per, dev_per) -> bool:
         return origin_per % dev_per == 0
@@ -187,16 +200,25 @@ class TriangleFactory:
         return tri
     
     def json_save(self, name: str, path: str='.') -> None:
-        pass
+        json_info = self.to_json()
+        folder = Path(path)
+        with open(folder / name, 'w+') as f:
+            json.dump(json_info, f)
     @classmethod
     def json_load(cls, name: str, path: str='.'):
-        pass
+        folder = Path(path)
+        with open(folder / name, 'r') as f:
+            json_info = json.load(f)
+        json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
+        return cls(**json_info)
     @classmethod
-    def from_json(cls, json_info: dict) -> None:
-        cls(**json_info)
+    def from_json(cls, json_info: dict):
+        if not isinstance(json_info['ref_date'], date):
+            json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
+        return cls(**json_info)
     def to_json(self) -> dict:
-        return {'base_triangle': self.base_triangle,
-            'ref_date': self.ref_date,
+        return {'base_triangle': self.base_triangle.tolist(),
+            'ref_date': self.ref_date.strftime('%Y-%m'),
             }
 
 

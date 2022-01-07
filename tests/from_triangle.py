@@ -12,6 +12,7 @@ if __name__ == '__main__':
     print(infos)
     print('\n')
     print(tri.values)
+    print(tri.get_diagonal(0))
     
 
     #np.savetxt("one_p_triangle.csv", infos, delimiter=";", fmt='%10.0f')
