@@ -1,4 +1,4 @@
-from errors import ArrayDifferentSizesError, InvalidPeriodCombinationError
+from actuary.errors import ArrayDifferentSizesError, InvalidPeriodCombinationError
 
 import numpy as np
 import xlwings as xw
@@ -23,6 +23,12 @@ class Header:
         self._calculate()
     def _calculate(self):
         raise NotImplementedError
+    def to_json(self) -> dict:
+        return {
+            'period': self.period,
+            'month_span': self.month_span,
+            'ref_date': self.ref_date.strftime('%Y-%m'),
+        }
 
 class VerticalHeader(Header):
     def _calculate(self) -> None:
@@ -98,17 +104,23 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         return diag
     def toggle_cumulative(self) -> None:
         if not self.cumulative:
-            self._change_to_cumulative()
+            self.change_to_cumulative()
         else:
-            self._change_to_movement()
-    def _change_to_cumulative(self) -> None:
+            self.change_to_movement()
+    def change_to_cumulative(self) -> None:
+        """ Will be cumulative afterwards. """
+        if self.cumulative:
+            return
         new_tri = np.zeros(self.values.shape)
         for i in range(self.values.shape[0]):
             for j in range(self.maxcol_index(i) + 1):
                 new_tri[i, j] = new_tri[i, j-1] + self.values[i, j]
         self.values = new_tri
         self.cumulative = True
-    def _change_to_movement(self) -> None:
+    def change_to_movement(self) -> None:
+        """ Will be movement afterwards. """
+        if not self.cumulative:
+            return
         new_tri = np.zeros(self.values.shape)
         new_tri[:, 0] = self.values[:, 0]
         new_tri[:, 1:] = np.diff(self.values, axis=1)
