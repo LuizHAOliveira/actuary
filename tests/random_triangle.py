@@ -22,4 +22,5 @@ def generate_onepertriangle(size, tail_perc=0.01, ultimate_mean=1000, ultimate_s
 if __name__ == '__main__':
     np.random.seed(2)
     tri_information = generate_onepertriangle(size=15, tail_perc=0.01, ultimate_mean=100000, ultimate_std=5000)
+    print(tri_information)
     #np.savetxt("test_gen_triangle.csv", tri_information[0], delimiter=";", fmt='%10.0f')
