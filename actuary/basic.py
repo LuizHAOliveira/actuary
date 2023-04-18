@@ -1,9 +1,10 @@
 
-from actuary.triangle import VerticalHeader
+from actuary.triangle import Triangle, VerticalHeader
 import numpy as np
 from datetime import date
 import datetime
 import xlwings as xw
+
 class Ultimate:
     """ Data structure for holding ultimate losses. """
     values: np.array
@@ -39,3 +40,9 @@ class Ultimate:
         ws.range('A4').value = self.header.h_dates
         ws.range('D4').options(transpose=True).value = self.values
         return ws
+    
+def calculate_reserves(ultimate: Ultimate, tri: Triangle) -> Ultimate:
+    tri.change_to_cumulative()
+    ibnr_vals = ultimate.values - tri.get_diagonal()
+    ibnr = Ultimate(ibnr_vals, ultimate.month_span, ultimate.period, ultimate.ref_date)
+    return ibnr
