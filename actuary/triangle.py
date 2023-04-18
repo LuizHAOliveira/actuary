@@ -33,7 +33,7 @@ class Header:
 class VerticalHeader(Header):
     def _calculate(self) -> None:
         shape = self.month_span // self.period + (self.month_span % self.period > 0)
-        h_numbers = np.zeros((shape, 2))
+        h_numbers = np.zeros((shape, 2), dtype=np.int32)
         h_dates = np.zeros((shape, 2), dtype='object')
         for i in range(shape):
             h_numbers[i, 0] = i * self.period
@@ -48,7 +48,7 @@ class VerticalHeader(Header):
 class HorizontalHeader(Header):
     def _calculate(self) -> None:
         shape = self.month_span // self.period + (self.month_span % self.period > 0)
-        h_numbers = np.zeros((2, shape))
+        h_numbers = np.zeros((2, shape), dtype=np.int32)
         h_dates = np.zeros((2, shape), dtype='object')
         for i in range(shape):
             h_numbers[0, -(i+1)] = max(self.month_span - (i + 1) * self.period, 0)
