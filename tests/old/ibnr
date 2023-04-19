@@ -1,0 +1,28 @@
+import __init__
+from actuary.triangle import TriangleFactory
+from actuary.dfm import DFCalculator, calculate_dfm_ultimate
+from actuary.basic import calculate_reserves
+from tests.random_triangle import generate_onepertriangle
+import numpy as np
+import xlwings as xw
+
+if __name__ == '__main__':
+    np.random.seed(1)
+
+    infos = generate_onepertriangle(size=24, tail_perc=0.01, ultimate_mean=10000, ultimate_std=2000)
+    fac = TriangleFactory(base_triangle=infos)
+    tri = fac.build_cumulative_triangle(3, 3)
+    dfm = DFCalculator(tri)
+    df_factors = dfm.calculate()
+    ultimate = calculate_dfm_ultimate(tri, df_factors)
+    ibnr = calculate_reserves(ultimate, tri)
+    
+
+    wb = xw.Book()
+    ws_tri = wb.sheets.add('Triangle')
+    ws_ult = wb.sheets.add('Ultimate')
+    ws_ibnr = wb.sheets.add('IBNR')
+
+    ultimate.to_excel(ws=ws_ult)
+    ibnr.to_excel(ws=ws_ibnr)
+    tri.to_excel(ws=ws_tri)
