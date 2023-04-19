@@ -1,0 +1,10 @@
+*pyc
+*/__pycache__/*
+*.py[cod]
+
+*.egg-info/
+actuary.egg-info/*
+build/*
+dist/*
+misc/*
+actuary/__pycache__/errors.cpython-39.pyc
