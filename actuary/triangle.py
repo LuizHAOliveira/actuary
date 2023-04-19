@@ -63,11 +63,8 @@ class HorizontalHeader(Header):
 class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     """ Basic data structure. Should NEVER be directly instantiated, use a factory instead or load from json. """
     values: np.array
-    months_span: list # (ori, dev)
-    ref_date: date
-    periods: list # (ori, dev)
-    v_header: VerticalHeader
-    h_header: HorizontalHeader
+    months_span: tuple # (ori, dev)
+    periods: tuple # (ori, dev)
     cumulative: bool
     @property
     def shape(self) -> tuple:
@@ -86,15 +83,11 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     def __init__(self, values: list,
             months_span: list,
             periods: list,
-            cumulative: bool,
-            ref_date: date = date(2000, 1, 1),
-            **kwargs) -> None:
+            cumulative: bool
+            ) -> None:
         self.values = np.array(values)
-        self.periods = periods
-        self.months_span = months_span
-        self.v_header = VerticalHeader(periods[0], months_span[0], ref_date)
-        self.h_header = HorizontalHeader(periods[1], months_span[1], ref_date)
-        self.ref_date = ref_date
+        self.periods = tuple(periods)
+        self.months_span = tuple(months_span)
         self.cumulative = cumulative
     def get_diagonal(self, index: int=0) -> np.array:
         tri = self.values
@@ -137,36 +130,23 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         folder = Path(path)
         with open(folder / name, 'r') as f:
             json_info = json.load(f)
-        json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
         return cls(**json_info)
     @classmethod
     def from_json(cls, json_info: dict):
-        if not isinstance(json_info['ref_date'], date):
-            json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
         return cls(**json_info)
     def to_json(self) -> dict:
-        return {'ref_date': self.ref_date.strftime('%Y-%m'),
+        return {
             'periods': list(self.periods),
             'months_span': list(self.months_span),
             'cumulative': self.cumulative,
             'values': self.values.tolist(),
             'type': 'Triangle',
             }
-    def to_excel(self, wb: xw.Book = None, ws: xw.Sheet = None) -> xw.Sheet:
-        if not ws and not wb:
-            wb = xw.Book()
-            ws = wb.sheets.add()
-        elif not ws:
-            ws = wb.sheets.add()
-        ws.range('D1').value = self.h_header.h_numbers
-        ws.range('A4').value = self.v_header.h_dates
-        ws.range('D4').value = self.values
-        return ws
 
 class TriangleFactory:
     """ Used to build triangles. """
     base_triangle: np.array
-    ref_date: date
+
     @classmethod
     def from_movement_data(cls, val: np.array, ori: np.array, dev: np.array, **kwargs):
         """ Constructor when you have movements relative to a date. """
@@ -180,12 +160,12 @@ class TriangleFactory:
             if o > ori_size or o + d + 1 > dev_size:
                 raise # Should put an error here
             tri[o, d] += v
-        return cls(tri, kwargs.get('ref_date', _DEFAULT_DATE))
+        return cls(tri)
 
-    def __init__(self, base_triangle: np.array, ref_date: date = _DEFAULT_DATE):
+    def __init__(self, base_triangle: np.array):
         """ The 'true' constructor is the basic movement triangle. """
         self.base_triangle = np.array(base_triangle)
-        self.ref_date = ref_date
+
     def _check_valid_periods(self, origin_per, dev_per) -> bool:
         return origin_per % dev_per == 0
 
@@ -204,7 +184,7 @@ class TriangleFactory:
                 rel_months = i % origin_period + j
                 j_new = (rel_months - left_overs) // dev_period + correction
                 tri_values[i_new, j_new] += self.base_triangle[i, j]
-        return Triangle(tri_values, self.base_triangle.shape, (origin_period, dev_period), 0, self.ref_date)
+        return Triangle(tri_values, self.base_triangle.shape, (origin_period, dev_period), 0)
 
     def build_cumulative_triangle(self, origin_period: int, dev_period: int) -> Triangle:
         tri = self.build_movement_triangle(origin_period, dev_period)
@@ -221,16 +201,13 @@ class TriangleFactory:
         folder = Path(path)
         with open(folder / name, 'r') as f:
             json_info = json.load(f)
-        json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
         return cls(**json_info)
     @classmethod
     def from_json(cls, json_info: dict):
-        if not isinstance(json_info['ref_date'], date):
-            json_info['ref_date'] = datetime.strptime(json_info['ref_date'], '%Y-%m').date()
         return cls(**json_info)
     def to_json(self) -> dict:
-        return {'base_triangle': self.base_triangle.tolist(),
-            'ref_date': self.ref_date.strftime('%Y-%m'),
+        return {
+            'base_triangle': self.base_triangle.tolist(),
             }
 
 
