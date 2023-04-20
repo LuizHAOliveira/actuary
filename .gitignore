@@ -7,9 +7,4 @@ actuary.egg-info/*
 build/*
 dist/*
 misc/*
-actuary/__pycache__/errors.cpython-39.pyc
-actuary/__pycache__/__init__.cpython-39.pyc
-actuary/__pycache__/basic.cpython-39.pyc
-actuary/__pycache__/dfm.cpython-39.pyc
-actuary/__pycache__/errors.cpython-39.pyc
-actuary/__pycache__/triangle.cpython-39.pyc
+
