@@ -10,19 +10,22 @@ from pathlib import Path
 _DEFAULT_DATE = date(2000, 1, 1)
 
 class Header:
-    """ Class to manipulate the periods of time. Abstract class. """
+    """ Class used to manipulate the periods of time. Should be inherited. """
     period: int
     month_span: int
     ref_date: date
     h_numbers: np.array
     h_dates: np.array
+
     def __init__(self, period: int, month_span: int, ref_date: date = _DEFAULT_DATE) -> None:
         self.period = period
         self.month_span = month_span
         self.ref_date = ref_date
         self._calculate()
+
     def _calculate(self):
         raise NotImplementedError
+    
     def to_json(self) -> dict:
         return {
             'period': self.period,
@@ -42,6 +45,7 @@ class VerticalHeader(Header):
             h_dates[i, 1] = (self.ref_date + relativedelta(months=h_numbers[i, 1])).strftime('%Y-%m')
         self.h_numbers = h_numbers
         self.h_dates = h_dates
+
     def __repr__(self) -> str:
         return f"VerticalHeader(period={self.period}, month_span={self.month_span}, ref_date={self.ref_date})"
 
@@ -57,24 +61,33 @@ class HorizontalHeader(Header):
             h_dates[1, -(i+1)] = (self.ref_date + relativedelta(months=h_numbers[1, -(i+1)])).strftime('%Y-%m')
         self.h_numbers = h_numbers
         self.h_dates = h_dates
+
     def __repr__(self) -> str:
         return f"HorizontalHeader(period={self.period}, month_span={self.month_span}, ref_date={self.ref_date})"
 
 class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
-    """ Basic data structure. Should NEVER be directly instantiated, use a factory instead or load from json. """
+    """ 
+    This class represents an origin-development Triangle of data. Combined with vectors,
+    it is the main data structure of the actuarial work.
+    Should NEVER be directly instantiated, use a factory instead or load from json. 
+    """
     values: np.array
     months_span: tuple # (ori, dev)
     periods: tuple # (ori, dev)
     cumulative: bool
+
     @property
     def shape(self) -> tuple:
         return self.values.shape
+    
     @property
     def origin_period(self) -> int:
         return self.periods[0]
+    
     @property
     def development_period(self) -> int:
         return self.periods[1]
+    
     def maxcol_index(self, row) -> int:
         dev_ori_ratio = int(self.periods[0] / self.periods[1])
         index = self.shape[1] - row * dev_ori_ratio - 1
@@ -89,17 +102,23 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         self.periods = tuple(periods)
         self.months_span = tuple(months_span)
         self.cumulative = cumulative
+
+    def __repr__(self) -> str:
+        return f"Triangle(values={self.values}, months_span={self.months_span}, periods={self.periods}, cumulative={self.cumulative})"
+
     def get_diagonal(self, index: int=0) -> np.array:
         tri = self.values
         diag = np.zeros(self.shape[0])
         for i in range(diag.size):
             diag[i] = tri[i, self.maxcol_index(i) - index]
         return diag
+    
     def toggle_cumulative(self) -> None:
         if not self.cumulative:
             self.change_to_cumulative()
         else:
             self.change_to_movement()
+
     def change_to_cumulative(self) -> None:
         """ Will be cumulative afterwards. """
         if self.cumulative:
@@ -110,6 +129,7 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
                 new_tri[i, j] = new_tri[i, j-1] + self.values[i, j]
         self.values = new_tri
         self.cumulative = True
+
     def change_to_movement(self) -> None:
         """ Will be movement afterwards. """
         if not self.cumulative:
@@ -125,15 +145,18 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         folder = Path(path)
         with open(folder / name, 'w+') as f:
             json.dump(json_info, f)
+
     @classmethod
     def load_json(cls, name: str, path: str='.'):
         folder = Path(path)
         with open(folder / name, 'r') as f:
             json_info = json.load(f)
         return cls(**json_info)
+    
     @classmethod
     def from_json(cls, json_info: dict):
         return cls(**json_info)
+    
     def to_json(self) -> dict:
         return {
             'periods': list(self.periods),
@@ -144,7 +167,13 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
             }
 
 class TriangleFactory:
-    """ Used to build triangles. """
+    """ 
+    A factory is used to build objects, in this case Triangles.
+    Using a factory permits to be more plastic with Triangle instatiation.
+    Keeping the data, different combinations of development and origin periods
+    can be tested until some that suits the work is chosen, avoiding reloading the data
+    many times.
+    """
     base_triangle: np.array
 
     @classmethod
@@ -196,15 +225,18 @@ class TriangleFactory:
         folder = Path(path)
         with open(folder / name, 'w+') as f:
             json.dump(json_info, f)
+
     @classmethod
     def json_load(cls, name: str, path: str='.'):
         folder = Path(path)
         with open(folder / name, 'r') as f:
             json_info = json.load(f)
         return cls(**json_info)
+    
     @classmethod
     def from_json(cls, json_info: dict):
         return cls(**json_info)
+    
     def to_json(self) -> dict:
         return {
             'base_triangle': self.base_triangle.tolist(),
