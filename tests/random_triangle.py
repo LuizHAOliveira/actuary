@@ -1,10 +1,11 @@
 import numpy as np
 from itertools import product
+from actuary import TriangleFactory, Triangle
 
 def exp_cum_dev(avg, loc):
     return 1 / (1 - np.exp(-loc/avg))
 
-def generate_onepertriangle(size, tail_perc=0.01, ultimate_mean=1000, ultimate_std=200):
+def generate_onepertriangle(size: int, tail_perc: float=0.01, ultimate_mean: float=1000, ultimate_std: float=200):
     beta = - (size) / np.log(tail_perc)
 
     index = np.arange(size) + 1
@@ -18,6 +19,15 @@ def generate_onepertriangle(size, tail_perc=0.01, ultimate_mean=1000, ultimate_s
         if i + j >= size:
             one_per_triangle[i, j] = 0
     return one_per_triangle
+
+def generate_triangle(size: int, origin_period: int, deveopment_period: int) -> Triangle:
+    tri_information: np.array = generate_onepertriangle(size=24,
+            tail_perc=0.01,
+            ultimate_mean=100000,
+            ultimate_std=5000)
+    fac: TriangleFactory = TriangleFactory(tri_information)
+    triangle: Triangle = fac.build_movement_triangle(origin_period, deveopment_period)
+    return triangle
 
 if __name__ == '__main__':
     np.random.seed(2)
