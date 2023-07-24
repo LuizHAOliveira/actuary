@@ -14,7 +14,7 @@ class DFMFactors:
     _tail: float
     month_span: int
     period: int
-    header: HorizontalHeader
+    
     @property
     def tail(self):
         return self._tail
@@ -27,7 +27,6 @@ class DFMFactors:
         self.df = df
         self.period = period
         self.month_span = month_span
-        self.header = HorizontalHeader(self.period, self.month_span)
         self._tail = tail
         self._calculate_cdf()
 
@@ -45,6 +44,7 @@ class DFMFactors:
         }
 
 class DFCalculator:
+    ''' A class used to calculate DFMFactors '''
     triangle: Triangle
     dfs_triangle: np.array
     selection_tri: np.array
@@ -73,6 +73,7 @@ class DFCalculator:
         return DFMFactors(df, self.triangle.months_span[1], self.triangle.periods[1])
     
 def calculate_dfm_ultimate(triangle: Triangle, factors: DFMFactors) -> Ultimate:
+    ''' Takes the calculated DFMFactors and then apply them for the Triangle. '''
     if triangle.development_period != factors.period:
         raise
     dev_ori_ratio = triangle.origin_period / triangle.development_period

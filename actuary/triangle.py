@@ -1,8 +1,7 @@
 from actuary.errors import ArrayDifferentSizesError, InvalidPeriodCombinationError
 
 import numpy as np
-import xlwings as xw
-from datetime import date, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
 import json
 from pathlib import Path
@@ -137,6 +136,8 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
         new_tri = np.zeros(self.values.shape)
         new_tri[:, 0] = self.values[:, 0]
         new_tri[:, 1:] = np.diff(self.values, axis=1)
+        for i in range(1, new_tri.shape[0]):
+            new_tri[i, self.maxcol_index(i) + 1] = 0
         self.values = new_tri
         self.cumulative = False
 
