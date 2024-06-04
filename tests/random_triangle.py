@@ -21,7 +21,7 @@ def generate_onepertriangle(size: int, tail_perc: float=0.01, ultimate_mean: flo
     return one_per_triangle
 
 def generate_triangle(size: int, origin_period: int, deveopment_period: int) -> Triangle:
-    tri_information: np.array = generate_onepertriangle(size=24,
+    tri_information: np.array = generate_onepertriangle(size=size,
             tail_perc=0.01,
             ultimate_mean=100000,
             ultimate_std=5000)

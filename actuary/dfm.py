@@ -1,7 +1,7 @@
 from hashlib import new
 from actuary.triangle import HorizontalHeader
-from actuary.basic import Ultimate
 from actuary.triangle import Triangle
+from actuary.triangle import Vector
 
 import numpy as np
  
@@ -72,7 +72,7 @@ class DFCalculator:
         df[np.isnan(df)] = 1
         return DFMFactors(df, self.triangle.months_span[1], self.triangle.periods[1])
     
-def calculate_dfm_ultimate(triangle: Triangle, factors: DFMFactors) -> Ultimate:
+def calculate_dfm_ultimate(triangle: Triangle, factors: DFMFactors) -> Vector:
     ''' Takes the calculated DFMFactors and then apply them for the Triangle. '''
     if triangle.development_period != factors.period:
         raise
@@ -81,8 +81,8 @@ def calculate_dfm_ultimate(triangle: Triangle, factors: DFMFactors) -> Ultimate:
     ultimate_val = np.zeros(triangle.shape[0])
     cdfs = np.flip(factors.cdf)
     for i in range(triangle.shape[0]):
-        ultimate_val[i] = triangle.get_diagonal()[i] * cdfs[int(i*dev_ori_ratio)]
-    return Ultimate(ultimate_val, triangle.months_span[0], triangle.origin_period, triangle.ref_date)
+        ultimate_val[i] = triangle.get_diagonal().values[i] * cdfs[int(i*dev_ori_ratio)]
+    return Vector(ultimate_val, triangle.months_span[0], triangle.origin_period)
 
 def __change_DFM_one_period(factors: DFMFactors, new_period: int) -> np.array:
     """ Subfunction of 'change_DFM_period' to get the DFs for one period """

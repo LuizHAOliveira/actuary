@@ -64,6 +64,32 @@ class HorizontalHeader(Header):
     def __repr__(self) -> str:
         return f"HorizontalHeader(period={self.period}, month_span={self.month_span}, ref_date={self.ref_date})"
 
+class Vector:
+    """ Data structure for holding Vector data. """
+    values: np.array
+    month_span: int
+    period: int
+    ref_date: date
+
+    def __init__(self, values: np.array, month_span: int, period: int):
+        self.values = values
+        self.month_span = month_span
+        self.period = period
+    
+    @classmethod
+    def from_json(cls, json_info: dict):
+        return cls(**json_info)
+    
+    def to_json(self) -> dict:
+        return {'period': list(self.period),
+            'month_span': list(self.month_span),
+            'values': self.values.tolist(),
+            'type': 'Ultimate',
+            }
+    
+    def __repr__(self) -> str:
+        return f"Vector(values={self.values}, month_span={self.month_span}, period={self.period})"
+
 class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     """ 
     This class represents an origin-development Triangle of data. Combined with vectors,
@@ -105,12 +131,13 @@ class Triangle: # Should be divided into 2 classes, cumulative and movement? IDK
     def __repr__(self) -> str:
         return f"Triangle(values={self.values}, months_span={self.months_span}, periods={self.periods}, cumulative={self.cumulative})"
 
-    def get_diagonal(self, index: int=0) -> np.array:
+    def get_diagonal(self, index: int=0) -> Vector:
         tri = self.values
         diag = np.zeros(self.shape[0])
         for i in range(diag.size):
             diag[i] = tri[i, self.maxcol_index(i) - index]
-        return diag
+        diag_vec = Vector(values=diag, month_span=self.months_span[0], period=self.periods[0])
+        return diag_vec
     
     def toggle_cumulative(self) -> None:
         if not self.cumulative:
@@ -243,4 +270,7 @@ class TriangleFactory:
             'base_triangle': self.base_triangle.tolist(),
             }
 
+
+def add_triangles(tri_1: Triangle, tri_2: Triangle):
+    tri_1
 

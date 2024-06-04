@@ -41,7 +41,7 @@ class TestTriangle(TestCase):
         # Calculated from the input
         manual_results: np.array = np.zeros((self.information.shape[0]-1) // self.periods[0] + 1)
         # Calculated from the triangle
-        triangle_results: np.array = self.triangle.get_diagonal()
+        triangle_results: np.array = self.triangle.get_diagonal().values
         base_position: int
         up_end_row: int
         low_end_row: int
